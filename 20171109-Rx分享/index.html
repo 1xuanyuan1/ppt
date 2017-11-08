@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>RxJS</title>
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+    <link rel="stylesheet" href="css/zenburn.css">
+    <style>
+      img.head-img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+      }
+      .reveal .font-white {
+        color: white;
+      }
+      .reveal .bg-white {
+        background: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section data-background="#15b6e4">
+          <h2>戴文俊</h2>
+          <img class="head-img" src="img/head.jpeg"/>
+          <h3>前端|伪全栈</h3>
+        </section>
+        <section>
+          <section>
+            <h1>·RP</h1>
+            <h1>·Rx</h1>
+          </section>
+          <section>
+            <h1>·RP</h1>
+            <p class="fragment">Reactive Programming</p>
+            <p class="fragment">传说中的  响应式编程</p>
+          </section>
+          <section>
+            <h1>·Rx</h1>
+            <p class="fragment">即ReactiveX，其中X代表不同的语言和技术栈，比如.NET，Java，Scala，Ruby，Javascript。</p>
+            <p class="fragment">RxJS表示RP基于Javascript语言的实现。</p>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h1>Rx的核心概念</h1>
+            <ol>
+              <li class="fragment">Observable<span class="fragment">(可观察的对象)</span></li>
+              <li class="fragment">Observer&Subscription<span class="fragment">(观察者&订阅)</span></li>
+              <li class="fragment">Subject</li>
+            </ol>
+          </section>
+          <section>
+            <h2>流程剖析</h2>
+            <ol>
+              <li class="fragment">通过使用 Rx.Observable.create 或者是创建操作符，<strong>创建</strong> 一个Observable；</li>
+              <li class="fragment">Observable 被 Observer（观察者） <strong>订阅</strong>；</li>
+              <li class="fragment">在 <strong>执行</strong> 时 向观察者发送next / error / complete 通知；</li>
+              <li class="fragment">同时执行过程可以被 <strong>终止</strong>。</li>
+            </ol>
+          </section>
+          <section>
+            <h3>1.创建</h3>
+            <pre class="fragment"><code data-trim data-noescape class="javascript">
+              var observable = Rx.Observable.create(function (observer) {
+                var id = setInterval(() => {
+                  observer.next('hi')
+                }, 1000);
+              });
+              // 其他方法来创建
+              Rx.Observable.interval(500);
+              Rx.Observable.from([1, 2, 3]);
+              Rx.Observable.of('aa', 'bb')
+              </code></pre>
+          </section>
+          <section>
+            <h3>2.订阅</h3>
+            <pre class="fragment"><code data-trim data-noescape class="javascript">
+              var observer = {
+                next: x => console.log('Observer got a next value: ' + x),
+                error: err => console.error('Observer got an error: ' + err),
+                complete: () => console.log('Observer got a complete notification'),
+              };
+              observable.subscribe(x => console.log(x));
+            </code></pre>
+          </section>
+          <section>
+            <h3>3.执行</h3>
+            <pre class="fragment"><code data-trim data-noescape class="javascript">
+            var observable = Rx.Observable.create(function (observer) {
+              try {
+                observer.next(1);
+                observer.next(2);
+                observer.next(3);
+                observer.complete();
+              } catch (err) {
+                observer.error(err); // 捕获异常后推送错误通知
+              }
+            });
+            </code></pre>
+          </section>
+          <section>
+            <h3>4.终止</h3>
+            <pre class="fragment"><code data-trim data-noescape class="javascript">
+            var observable = Rx.Observable.interval(300);
+            console.log('observer subscribed');
+            var subscription = observable.subscribe(x => console.log(x));
+            setTimeout(() => {
+              console.log('observer unsubscribed');
+              subscription.unsubscribe();
+            }, 2000);
+            </code></pre>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h3>Subject</h3>
+            <div>什么是Subject？</div>
+            <p class="fragment">在RxJS中，Subject是一类特殊的Observable，它可以向多个Observer多路推送数值。普通的Observable并不具备多路推送的能力（每一个Observer都有自己独立的执行环境），而Subject可以共享一个执行环境。</p>
+          </section>
+          <section>
+            <div>每一个Subject都是一个Observable（可观察对象）</div>
+            <pre class="fragment"><code data-trim data-noescape class="javascript">
+              var subject = new Rx.Subject();
+              
+              subject.subscribe({
+                next: (v) => console.log('observerA: ' + v)
+              });
+              subject.subscribe({
+                next: (v) => console.log('observerB: ' + v)
+              });
+              
+              subject.next(1);
+              subject.next(2);
+            </code></pre>
+          </section>
+          <section>
+              <div>每一个Subject都是一个Observable（可观察对象）</div>
+              <pre class="fragment"><code data-trim data-noescape class="javascript">
+                var subject = new Rx.Subject();
+                
+                subject.subscribe({
+                  next: (v) => console.log('observerA: ' + v)
+                });
+                subject.subscribe({
+                  next: (v) => console.log('observerB: ' + v)
+                });
+                
+                var observable = Rx.Observable.from([1, 2, 3]);
+
+                // 你可以传递Subject来订阅observable
+                observable.subscribe(subject); 
+              </code></pre>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h2>多中特殊的Subject</h2>
+            <ol>
+              <li class="fragment">BehaviorSubject</li>
+              <li class="fragment">ReplaySubject</li>
+              <li class="fragment">AsyncSubject</li>
+            </ol>
+          </section>
+          <section>
+            <h2>BehaviorSubject</h2>
+            <p>它总是保存最近向数据消费者发送的值，当一个Observer订阅后，它会即刻从BehaviorSubject收到“最新的值”。</p>
+            <pre class="fragment"><code data-trim data-noescape class="javascript">
+            var subject = new Rx.BehaviorSubject(0 /* 初始值 */);
+            
+            subject.subscribe({
+              next: (v) => console.log('observerA: ' + v)
+            });
+            
+            subject.next(1);
+            subject.next(2);
+            
+            subject.subscribe({
+              next: (v) => console.log('observerB: ' + v)
+            });
+            subject.next(3);
+            </code></pre>
+          </section>
+          <section>
+            <h2>ReplaySubject</h2>
+            <p>通过 ReplaySubject可以向新的订阅者推送旧数值，就像一个录像机ReplaySubject可以记录Observable的一部分状态（过去时间内推送的值）。</p>
+            <pre class="fragment"><code data-trim data-noescape class="javascript">
+              var subject = new Rx.ReplaySubject(3 /* 回放数量 */);
+              subject.subscribe({
+                next: (v) => console.log('observerA: ' + v)
+              });
+              
+              subject.next(1);
+              subject.next(2);
+              subject.next(3);
+              subject.next(4);
+              
+              subject.subscribe({
+                next: (v) => console.log('observerB: ' + v)
+              });
+              subject.next(5);
+            </code></pre>
+          </section>
+          <section>
+            <pre class="fragment"><code data-trim data-noescape class="javascript">
+              var subject = new Rx.ReplaySubject(100, 500/*windowTime*/);
+              subject.subscribe({
+                next: (v) => console.log('observerA: ' + v)
+              });
+              
+              var i = 1;
+              setInterval(() => subject.next(i++), 200);
+            
+              setTimeout(() => {
+                subject.subscribe({
+                  next: (v) => console.log('observerB: ' + v)
+                });
+              }, 1000);
+            </code></pre>
+          </section>
+          <section>
+            <h2>AsyncSubject</h2>
+            <p>Observable仅会在执行完成后，推送执行环境中的最后一个值。</p>
+            <pre class="fragment"><code data-trim data-noescape class="javascript">
+              var subject = new Rx.AsyncSubject();    
+              subject.subscribe({
+                next: (v) => console.log('observerA: ' + v)
+              });             
+              subject.next(1);
+              subject.next(2);
+              subject.next(3);
+              subject.next(4);
+              
+              subject.subscribe({
+                next: (v) => console.log('observerB: ' + v)
+              });
+              subject.next(5);
+              subject.complete();
+            </code></pre>
+          </section>
+        </section>
+      </div>
+    </div>
+    <script src="js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+    <script>
+        // Full list of configuration options available here:
+        // https://github.com/hakimel/reveal.js#configuration
+        Reveal.initialize({
+          center: true,
+          history: true,
+          // rtl: true,
+  
+          transition: 'linear',
+          // transitionSpeed: 'slow',
+          backgroundTransition: 'zoom',
+          // Optional reveal.js plugins
+          dependencies: [
+            { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+            { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+            { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+            { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+            { src: 'plugin/zoom-js/zoom.js', async: true },
+            { src: 'plugin/notes/notes.js', async: true }
+          ]
+        });
+        Reveal.slide(3)
+  
+      </script>
+  </body>
+</html>
